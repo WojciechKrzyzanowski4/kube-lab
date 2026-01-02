@@ -29,10 +29,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "kube-lab.fullname" . }}
-            {{- if .Values.secret.enabled }}
             - secretRef:
-                name: {{ include "kube-lab.fullname" . }}
-            {{- end }}
+                name: {{ .Values.api.secret.name }}
           livenessProbe:
             {{ toYaml .Values.api.livenessProbe | nindent 12 }}
           readinessProbe:

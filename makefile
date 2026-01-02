@@ -4,17 +4,19 @@ IMAGE_NAME    		?= kube-lab
 CHART_DIR     		?= devops/kube-lab
 VALUES_FILE   		?= $(CHART_DIR)/values.yaml
 EXTRA_VALUES  		?=
-RELEASE_NAME  		?= release-1
+RELEASE_NAME  		?= lab
 NAMESPACE     		?= kube-lab
 KUBE_CONTEXT  		?= docker-desktop
 DOCS_DIR    		?= docs
 LAB_GUIDE   		?= $(DOCS_DIR)/lab-guide.md
 BASE_URL			?= http://kube-lab-api.127.0.0.1.nip.io
+ENV_FILE        	?= devops/.env
+SECRET_NAME     	?= api-secret
 
 .PHONY: help full context uninstall build deploy lab lab-steps grade
 
 
-full: uninstall context build deploy
+full: uninstall context secrets build deploy
 	@echo
 	@echo "Deployment triggered successfully!"
 	@echo
@@ -46,6 +48,21 @@ context:
 	else \
 	  echo "kubectl context already $(KUBE_CONTEXT)"; \
 	fi
+
+secrets:
+	@if [ ! -f "$(ENV_FILE)" ]; then \
+	  echo "❌ Missing $(ENV_FILE). Create it first in the devops folder."; \
+	  exit 1; \
+	fi
+	@echo "Creating/updating Kubernetes Secret '$(SECRET_NAME)' from $(ENV_FILE)..."
+	@set -a; \
+	  . $(ENV_FILE); \
+	  set +a; \
+	  kubectl create secret generic $(SECRET_NAME) \
+	    --from-literal=API_KEY="$$API_KEY" \
+	    --namespace $(NAMESPACE) \
+	    --dry-run=client -o yaml | kubectl apply -f -
+	@echo "✅ Secret $(SECRET_NAME) applied to namespace $(NAMESPACE)"
 
 
 uninstall:

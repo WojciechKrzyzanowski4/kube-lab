@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Kube Lab – API Dashboard</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(180deg, #020617, #020617 40%, #020617);
+      color: #e5e7eb;
+      padding: 2.5rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin-bottom: 0.25rem;
+      font-size: 2rem;
+    }
+
+    .subtitle {
+      color: #94a3b8;
+      margin-bottom: 2.5rem;
+    }
+
+    .card {
+      background: linear-gradient(145deg, #020617, #020617);
+      border: 1px solid #1e293b;
+      border-radius: 14px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow:
+        0 10px 30px rgba(2, 6, 23, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    .card h3 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      margin-right: 0.4rem;
+      vertical-align: middle;
+    }
+
+    .badge-ok {
+      background: rgba(34, 197, 94, 0.15);
+      color: #22c55e;
+      border: 1px solid rgba(34, 197, 94, 0.35);
+    }
+
+    .badge-warn {
+      background: rgba(245, 158, 11, 0.15);
+      color: #f59e0b;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+
+    .badge-fail {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+    }
+
+    .badge-info {
+      background: rgba(147, 197, 253, 0.15);
+      color: #93c5fd;
+      border: 1px solid rgba(147, 197, 253, 0.35);
+    }
+
+    .endpoint {
+      display: inline-block;
+      margin: 0.3rem 0.4rem 0.3rem 0;
+      padding: 0.45rem 0.75rem;
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      text-decoration: none;
+      color: #93c5fd;
+      font-family: monospace;
+      transition: border 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .endpoint:hover {
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.4);
+    }
+
+    footer {
+      margin-top: 3rem;
+      font-size: 0.85rem;
+      color: #64748b;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Kube Lab – API Dashboard</h1>
+  <div class="subtitle">
+    Same container image · Runtime defined by ConfigMaps and Secrets
+  </div>
+
+  <div class="card">
+    <h3>Greeting</h3>
+    <p>{{ greeting }}</p>
+  </div>
+
+  <div class="card">
+    <h3>Health Probes</h3>
+    <span class="badge badge-ok">LIVE</span>
+    <span class="badge badge-ok">READY</span>
+  </div>
+
+  <div class="card">
+    <h3>Configuration (ConfigMap)</h3>
+    {% if app_name %}
+      <span class="badge badge-info">APP_NAME={{ app_name }}</span>
+    {% else %}
+      <span class="badge badge-warn">APP_NAME not set</span>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h3>Secrets (Kubernetes Secret)</h3>
+    {% if has_secret %}
+      <span class="badge badge-ok">API_KEY present</span>
+    {% else %}
+      <span class="badge badge-fail">API_KEY missing</span>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h3>API Endpoints</h3>
+    <a class="endpoint" href="/livez" target="_blank">GET /livez</a>
+    <a class="endpoint" href="/readyz" target="_blank">GET /readyz</a>
+  </div>
+
+  <footer>
+    Kubernetes injects configuration.<br />
+    The application remains unchanged.
+  </footer>
+
+</body>
+</html>

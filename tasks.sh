@@ -3,6 +3,8 @@
 BASE_URL="${BASE_URL:-http://kube-lab-api.127.0.0.1.nip.io}"
 TOTAL=20
 SCORE=0
+VALUES_FILE="devops/kube-lab/values.yaml"
+DEV_FILE="devops/kube-lab/values.dev.yaml"
 
 ok() {
   echo "[$1/$TOTAL] ✅ $2"
@@ -11,16 +13,6 @@ ok() {
 
 fail() {
   echo "[$1/$TOTAL] ❌ $2"
-}
-
-curl_json() {
-  local url="$1" method="${2:-GET}" data="$3"
-  local tmp status body
-  tmp="$(mktemp)"
-  status=$(curl -s -o "$tmp" -w "%{http_code}" -H "Content-Type: application/json" -X "$method" ${data:+-d "$data"} "$url" 2>/dev/null || echo "000")
-  body="$(cat "$tmp")"
-  rm -f "$tmp"
-  printf "%s\n%s" "$status" "$body"
 }
 
 pattern_check() {
@@ -33,65 +25,88 @@ sys.exit(0 if re.search(pat, text, re.S) else 1)
 PY
 }
 
-desc="Health endpoint returns status ok JSON"
-resp="$(curl_json "$BASE_URL/healthz")"
-status="${resp%%$'\n'*}"
-body="${resp#*$'\n'}"
-if [ "$status" = "200" ] && echo "$body" | grep -qi '"status"[[:space:]]*:[[:space:]]*"ok"'; then ok 1 "$desc"; else fail 1 "$desc"; fi
+task=1
+desc="api.replicas set to 3"
+if pattern_check "$VALUES_FILE" 'api:\s*\n(?:.*\n)*?replicas:\s*3'; then ok $task "$desc"; else fail $task "$desc"; fi
 
-desc="Config endpoint returns app_env"
-resp="$(curl_json "$BASE_URL/config")"
-status="${resp%%$'\n'*}"
-body="${resp#*$'\n'}"
-if [ "$status" = "200" ] && echo "$body" | grep -qi 'app_env'; then ok 2 "$desc"; else fail 2 "$desc"; fi
+task=$((task+1))
+desc="image.pullPolicy set to Always"
+if pattern_check "$VALUES_FILE" 'image:\s*\n(?:.*\n)*?pullPolicy:\s*Always'; then ok $task "$desc"; else fail $task "$desc"; fi
 
-desc="Version endpoint returns version"
-resp="$(curl_json "$BASE_URL/version")"
-status="${resp%%$'\n'*}"
-body="${resp#*$'\n'}"
-if [ "$status" = "200" ] && echo "$body" | grep -qi 'version'; then ok 3 "$desc"; else fail 3 "$desc"; fi
+task=$((task+1))
+desc="config sets APP_GREETING to Welcome to the Lab"
+if pattern_check "$VALUES_FILE" 'config:\s*\n(?:.*\n)*?APP_GREETING:\s*"Welcome to the Lab"'; then ok $task "$desc"; else fail $task "$desc"; fi
 
-desc="Secret-check endpoint reports token presence"
-resp="$(curl_json "$BASE_URL/secret-check")"
-status="${resp%%$'\n'*}"
-body="${resp#*$'\n'}"
-if [ "$status" = "200" ] && echo "$body" | grep -qi 'has_dummy_token'; then ok 7 "$desc"; else fail 7 "$desc"; fi
+task=$((task+1))
+desc="config sets APP_ENV to lab"
+if pattern_check "$VALUES_FILE" 'config:\s*\n(?:.*\n)*?APP_ENV:\s*lab'; then ok $task "$desc"; else fail $task "$desc"; fi
 
-VALUES_FILE="devops/kube-lab/values.yaml"
+task=$((task+1))
+desc="secret defines API_KEY (non-empty)"
+if pattern_check "$VALUES_FILE" 'secret:\s*\n(?:.*\n)*?API_KEY:\s*("?)[^ \n"]+\1'; then ok $task "$desc"; else fail $task "$desc"; fi
 
-desc="values.yaml sets api.replicas to 3"
-if pattern_check "$VALUES_FILE" 'api:\s*\n(?:.*\n)*?replicas:\s*3'; then ok 11 "$desc"; else fail 11 "$desc"; fi
+task=$((task+1))
+desc="requests set: cpu 100m and memory 128Mi"
+if pattern_check "$VALUES_FILE" 'resources:\s*\n(?:.*\n)*?requests:\s*\n(?:.*\n)*?cpu:\s*100m' && pattern_check "$VALUES_FILE" 'resources:\s*\n(?:.*\n)*?requests:\s*\n(?:.*\n)*?memory:\s*128Mi'; then ok $task "$desc"; else fail $task "$desc"; fi
 
-desc="values.yaml config defines GREETING_PREFIX"
-if pattern_check "$VALUES_FILE" 'config:\s*\n(?:.*\n)*?GREETING_PREFIX:'; then ok 12 "$desc"; else fail 12 "$desc"; fi
+task=$((task+1))
+desc="limits set: cpu 250m and memory 256Mi"
+if pattern_check "$VALUES_FILE" 'resources:\s*\n(?:.*\n)*?limits:\s*\n(?:.*\n)*?cpu:\s*250m' && pattern_check "$VALUES_FILE" 'resources:\s*\n(?:.*\n)*?limits:\s*\n(?:.*\n)*?memory:\s*256Mi'; then ok $task "$desc"; else fail $task "$desc"; fi
 
-desc="values.yaml config defines APP_VERSION"
-if pattern_check "$VALUES_FILE" 'config:\s*\n(?:.*\n)*?APP_VERSION:'; then ok 13 "$desc"; else fail 13 "$desc"; fi
+task=$((task+1))
+desc="pod annotations include example.com/release: lab"
+if pattern_check "$VALUES_FILE" 'podAnnotations:\s*\n(?:.*\n)*?example\.com/release:\s*"lab"'; then ok $task "$desc"; else fail $task "$desc"; fi
 
-desc="values.yaml secret defines API_TOKEN"
-if pattern_check "$VALUES_FILE" 'secret:\s*\n(?:.*\n)*?API_TOKEN:'; then ok 14 "$desc"; else fail 14 "$desc"; fi
+task=$((task+1))
+desc="service annotations include prometheus scrape hints"
+if pattern_check "$VALUES_FILE" 'service:\s*\n(?:.*\n)*?annotations:\s*\n(?:.*\n)*?prometheus\.io/scrape:\s*"true"' && pattern_check "$VALUES_FILE" 'service:\s*\n(?:.*\n)*?annotations:\s*\n(?:.*\n)*?prometheus\.io/port:\s*"5000"'; then ok $task "$desc"; else fail $task "$desc"; fi
 
+task=$((task+1))
+desc="rolling update strategy maxSurge=1, maxUnavailable=0"
+if pattern_check "$VALUES_FILE" 'strategy:\s*\n(?:.*\n)*?rollingUpdate:\s*\n(?:.*\n)*?maxSurge:\s*1' && pattern_check "$VALUES_FILE" 'strategy:\s*\n(?:.*\n)*?rollingUpdate:\s*\n(?:.*\n)*?maxUnavailable:\s*0'; then ok $task "$desc"; else fail $task "$desc"; fi
+
+task=$((task+1))
+desc="nodeSelector sets kubernetes.io/os: linux"
+if pattern_check "$VALUES_FILE" 'nodeSelector:\s*\n(?:.*\n)*?kubernetes\.io/os:\s*linux'; then ok $task "$desc"; else fail $task "$desc"; fi
+
+task=$((task+1))
+desc="tolerations include key=workload effect=NoSchedule"
+if pattern_check "$VALUES_FILE" 'tolerations:\s*\n(?:.*\n)*?-.*key:\s*workload(?:.*\n)*?operator:\s*Exists(?:.*\n)*?effect:\s*NoSchedule'; then ok $task "$desc"; else fail $task "$desc"; fi
+
+task=$((task+1))
+desc="pod anti-affinity present (spread by app.kubernetes.io/name)"
+if pattern_check "$VALUES_FILE" 'affinity:\s*\n(?:.*\n)*?podAntiAffinity'; then ok $task "$desc"; else fail $task "$desc"; fi
+
+task=$((task+1))
 desc="autoscaling.enabled set to true"
-if pattern_check "$VALUES_FILE" 'autoscaling:\s*\n(?:.*\n)*?enabled:\s*true'; then ok 15 "$desc"; else fail 15 "$desc"; fi
+if pattern_check "$VALUES_FILE" 'autoscaling:\s*\n(?:.*\n)*?enabled:\s*true'; then ok $task "$desc"; else fail $task "$desc"; fi
 
+task=$((task+1))
 desc="autoscaling.minReplicas set to 2"
-if pattern_check "$VALUES_FILE" 'autoscaling:\s*\n(?:.*\n)*?minReplicas:\s*2'; then ok 16 "$desc"; else fail 16 "$desc"; fi
+if pattern_check "$VALUES_FILE" 'autoscaling:\s*\n(?:.*\n)*?minReplicas:\s*2'; then ok $task "$desc"; else fail $task "$desc"; fi
 
+task=$((task+1))
 desc="autoscaling.maxReplicas set to 5"
-if pattern_check "$VALUES_FILE" 'autoscaling:\s*\n(?:.*\n)*?maxReplicas:\s*5'; then ok 17 "$desc"; else fail 17 "$desc"; fi
+if pattern_check "$VALUES_FILE" 'autoscaling:\s*\n(?:.*\n)*?maxReplicas:\s*5'; then ok $task "$desc"; else fail $task "$desc"; fi
 
+task=$((task+1))
 desc="autoscaling.targetCPUUtilizationPercentage set to 60"
-if pattern_check "$VALUES_FILE" 'autoscaling:\s*\n(?:.*\n)*?targetCPUUtilizationPercentage:\s*60'; then ok 18 "$desc"; else fail 18 "$desc"; fi
+if pattern_check "$VALUES_FILE" 'autoscaling:\s*\n(?:.*\n)*?targetCPUUtilizationPercentage:\s*60'; then ok $task "$desc"; else fail $task "$desc"; fi
 
+task=$((task+1))
 desc="Ingress hosts include kube-lab.local"
-if grep -q "kube-lab.local" "$VALUES_FILE"; then ok 19 "$desc"; else fail 19 "$desc"; fi
+if grep -q "kube-lab.local" "$VALUES_FILE"; then ok $task "$desc"; else fail $task "$desc"; fi
 
-desc="values.dev.yaml exists and sets replicas to 1"
-DEV_FILE="devops/kube-lab/values.dev.yaml"
-if [ -f "$DEV_FILE" ] && pattern_check "$DEV_FILE" 'replicas:\s*1'; then ok 20 "$desc"; else fail 20 "$desc"; fi
+task=$((task+1))
+desc="Ingress TLS configured with secret kube-lab-tls"
+if pattern_check "$VALUES_FILE" 'ingress:\s*\n(?:.*\n)*?tls:\s*\n(?:.*\n)*?secretName:\s*kube-lab-tls'; then ok $task "$desc"; else fail $task "$desc"; fi
+
+task=$((task+1))
+desc="values.dev.yaml exists with replicas 1 and dev host"
+if [ -f "$DEV_FILE" ] && pattern_check "$DEV_FILE" 'replicas:\s*1' && pattern_check "$DEV_FILE" 'ingress:\s*\n(?:.*\n)*?hosts:\s*\n(?:.*\n)*?kube-lab-dev\.127\.0\.0\.1\.nip\.io'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 echo
 echo "Score: $SCORE/$TOTAL"
 if [ "$SCORE" -lt "$TOTAL" ]; then
-  echo "Tip: ensure the app is running at $BASE_URL and that values.yaml matches the tasks."
+  echo "Tip: ensure the release is deployed and values.yaml/values.dev.yaml match the tasks."
 fi

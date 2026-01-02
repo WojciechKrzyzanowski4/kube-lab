@@ -9,6 +9,10 @@ metadata:
     {{ include "kube-lab.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.api.replicas }}
+  {{- with .Values.api.strategy }}
+  strategy:
+    {{ toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ default .Values.api.name .Values.api.name | quote }}
@@ -18,6 +22,10 @@ spec:
       labels:
         app.kubernetes.io/name: {{ default .Values.api.name .Values.api.name | quote }}
         app.kubernetes.io/instance: {{ .Release.Name | quote }}
+      {{- with .Values.api.podAnnotations }}
+      annotations:
+{{ toYaml . | nindent 8 }}
+      {{- end }}
     spec:
       containers:
         - name: {{ default .Values.api.name .Values.api.name }}
@@ -35,6 +43,10 @@ spec:
             {{ toYaml .Values.api.livenessProbe | nindent 12 }}
           readinessProbe:
             {{ toYaml .Values.api.readinessProbe | nindent 12 }}
+          {{- with .Values.api.resources }}
+          resources:
+            {{ toYaml . | nindent 12 }}
+          {{- end }}
       {{- with .Values.api.nodeSelector }}
       nodeSelector: {{ toYaml . | nindent 8 }}
       {{- end }}

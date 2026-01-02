@@ -8,7 +8,7 @@ RELEASE_NAME  		?= lab
 NAMESPACE     		?= kube-lab
 KUBE_CONTEXT  		?= docker-desktop
 DOCS_DIR    		?= docs
-LAB_GUIDE   		?= $(DOCS_DIR)/lab-guide.md
+LAB_GUIDE   		?= $(DOCS_DIR)/lab-tasks.md
 BASE_URL			?= http://kube-lab-api.127.0.0.1.nip.io
 ENV_FILE        	?= devops/.env
 SECRET_NAME     	?= api-secret
@@ -114,7 +114,7 @@ lab-steps:
 	@echo " - Config: adjust config.* keys for env vars; redeploy."
 	@echo " - Autoscaling: enable autoscaling.* and watch 'kubectl get hpa -w' under load."
 	@echo " - Orchestration: tweak maxSurge/maxUnavailable in templates/deployment.yaml to observe rollouts."
-	@echo " - Finish the 14 local tasks in $(LAB_GUIDE), then run: make grade BASE_URL=$(BASE_URL)"
+	@echo " - Finish the 20 Helm-focused tasks in $(LAB_GUIDE), then run: make grade BASE_URL=$(BASE_URL)"
 	@echo "See $(LAB_GUIDE) for task descriptions and tips."
 
 

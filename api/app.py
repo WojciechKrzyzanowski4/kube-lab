@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template
+from flask import Flask, render_template
 import os
 
 flask_app = Flask(__name__)
@@ -23,24 +23,6 @@ def live_z():
 @flask_app.route("/readyz")
 def ready_z():
     return "OK", 200
-
-# This is the api space, you can define and change your endpoints right here
-# Creating other files, maintaining a clean separation of concerns is not needed but advised
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
 
 
 if __name__ == "__main__":

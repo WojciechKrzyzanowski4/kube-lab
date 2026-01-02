@@ -1,0 +1,66 @@
+fullnameOverride: kube-lab
+
+api:
+  name: "kube-lab"
+  component: "api"
+  replicas: 2
+  image:
+    repository: your-repository
+    tag: ""
+    pullPolicy: IfNotPresent
+  containerPort: 5000
+  livenessProbe:
+    httpGet:
+      path: /livez
+      port: 5000
+    initialDelaySeconds: 20
+    periodSeconds: 10
+  readinessProbe:
+    httpGet:
+      path: /readyz
+      port: 5000
+    initialDelaySeconds: 5
+    periodSeconds: 5
+  nodeSelector: { }
+  tolerations: [ ]
+  affinity: { }
+  service:
+    name: "kube-lab"
+    component: "api-svc"
+    type: ClusterIP
+    port: 80
+    annotations: { }
+    labels: { }
+  ingress:
+    enabled: true
+    name: "kube-lab"
+    component: "api-ingress"
+    className: "nginx"
+    annotations: { }
+    hosts:
+      - kube-lab-api.127.0.0.1.nip.io
+    path: /
+    tls: [ ]
+
+config:
+  name: "kube-lab"
+  component: "config"
+  APP_NAME: "FlaskLabApp"
+  APP_ENV: "dev"
+
+secret:
+  enabled: true
+  name: "kube-lab"
+  component: "secret"
+  DUMMY_TOKEN: "top-secret-token-very-very-secret"
+
+autoscaling:
+  enabled: false
+  name: "kube-lab"
+  component: "api-hpa"
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+

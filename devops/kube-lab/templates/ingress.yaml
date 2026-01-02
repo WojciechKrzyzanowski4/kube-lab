@@ -1,0 +1,35 @@
+{{- if .Values.api.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "kube-lab.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.api.ingress.name | quote }}
+    app.kubernetes.io/component: {{ .Values.api.ingress.component | quote }}
+    {{ include "kube-lab.labels" . | nindent 4 }}
+  {{- with .Values.api.ingress.annotations }}
+  annotations:
+    {{ toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.api.ingress.className }}
+  ingressClassName: {{ .Values.api.ingress.className | quote }}
+  {{- end }}
+  {{- if .Values.api.ingress.tls }}
+  tls:
+    {{ toYaml .Values.api.ingress.tls | nindent 4 }}
+  {{- end }}
+  rules:
+    {{- range .Values.api.ingress.hosts }}
+    - host: {{ . | quote }}
+      http:
+        paths:
+          - path: {{ $.Values.api.ingress.path | default "/" | quote }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "kube-lab.fullname" $ }}
+                port:
+                  number: {{ $.Values.api.service.port }}
+    {{- end }}
+{{- end }}

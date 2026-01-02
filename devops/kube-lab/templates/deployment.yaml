@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "kube-lab.fullname" . }}
+  labels:
+    app: {{ default .Values.api.name | quote }}
+    name: {{ default .Values.api.name | quote }}
+    app.kubernetes.io/name: {{ default .Values.api.name | quote }}
+    {{ include "kube-lab.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.api.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ default .Values.api.name .Values.api.name | quote }}
+      app.kubernetes.io/instance: {{ .Release.Name | quote }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ default .Values.api.name .Values.api.name | quote }}
+        app.kubernetes.io/instance: {{ .Release.Name | quote }}
+    spec:
+      containers:
+        - name: {{ default .Values.api.name .Values.api.name }}
+          image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}"
+          imagePullPolicy: {{ .Values.api.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.api.containerPort }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "kube-lab.fullname" . }}
+            {{- if .Values.secret.enabled }}
+            - secretRef:
+                name: {{ include "kube-lab.fullname" . }}
+            {{- end }}
+          livenessProbe:
+            {{ toYaml .Values.api.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{ toYaml .Values.api.readinessProbe | nindent 12 }}
+      {{- with .Values.api.nodeSelector }}
+      nodeSelector: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.api.affinity }}
+      affinity: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.api.tolerations }}
+      tolerations: {{ toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "kube-lab.fullname" . }}
+  labels:
+    app: {{ default .Values.config.name | quote }}
+    name: {{ default .Values.config.name | quote }}
+    app.kubernetes.io/name: {{ default .Values.config.name | quote }}
+    {{ include "kube-lab.labels" . | nindent 4 }}
+data:
+  APP_NAME: {{ .Values.config.APP_NAME | quote }}
+  APP_ENV: {{ .Values.config.APP_ENV | quote }}

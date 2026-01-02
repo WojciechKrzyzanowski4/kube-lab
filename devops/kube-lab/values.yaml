@@ -3,14 +3,25 @@ fullnameOverride: kube-lab
 api:
   name: "kube-lab"
   component: "api"
-  replicas: 2
+  replicas: 3
   image:
     repository: your-repository
     tag: ""
-    pullPolicy: IfNotPresent
-  podAnnotations: { }
-  resources: { }
-  strategy: { }
+    pullPolicy: Always
+  podAnnotations:
+    example.com/release: "lab"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   containerPort: 5000
   livenessProbe:
     httpGet:
@@ -24,15 +35,32 @@ api:
       port: 5000
     initialDelaySeconds: 5
     periodSeconds: 5
-  nodeSelector: { }
-  tolerations: [ ]
-  affinity: { }
+  nodeSelector:
+    kubernetes.io/os: linux
+  tolerations:
+    - key: workload
+      operator: Exists
+      effect: NoSchedule
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                    - "kube-lab"
   service:
     name: "kube-lab"
     component: "api-svc"
     type: ClusterIP
     port: 80
-    annotations: { }
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "5000"
     labels: { }
   ingress:
     enabled: true
@@ -42,24 +70,28 @@ api:
     annotations: { }
     hosts:
       - kube-lab-api.127.0.0.1.nip.io
+      - kube-lab.local
     path: /
-    tls: [ ]
+    tls:
+      - secretName: kube-lab-tls
+        hosts:
+          - kube-lab.local
   secret:
     name: api-secret
+    API_KEY: "change-me"
 
 config:
   name: "kube-lab"
   component: "config"
   APP_NAME: "FlaskLabApp"
-  APP_ENV: "dev"
-  APP_GREETING: "Hello from Flask running in Kubernetes via Ingress!"
+  APP_ENV: lab
+  APP_GREETING: "Welcome to the Lab"
 
 autoscaling:
-  enabled: sdfsadfasd
+  enabled: true
   name: "kube-lab"
   component: "api-hpa"
-  minReplicas: 4
-  maxReplicas: 10
-  targetCPUUtilizationPercentage: 80
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 60
   targetMemoryUtilizationPercentage: 80
-

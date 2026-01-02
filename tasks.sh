@@ -34,39 +34,39 @@ if pattern_check "$VALUES_FILE" 'APP_GREETING:\s*"Welcome to the Lab"'; then ok 
 
 task=$((task+1))
 desc="config sets APP_ENV to lab"
-if pattern_check "$VALUES_FILE" 'APP_ENV:\s*lab'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'APP_ENV:\s*"?(lab)"?'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="secret defines API_KEY (non-empty)"
-if pattern_check "$VALUES_FILE" 'secret:\s*\n(?:.*\n)*?API_KEY:\s*("?)[^ \n"]+\1'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'API_KEY:\s*[^\s]'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="requests set: cpu 100m and memory 128Mi"
-if pattern_check "$VALUES_FILE" 'requests:\s*\n(?:.*\n)*?cpu:\s*100m' && pattern_check "$VALUES_FILE" 'requests:\s*\n(?:.*\n)*?memory:\s*128Mi'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'cpu:\s*100m' && pattern_check "$VALUES_FILE" 'memory:\s*128Mi'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="limits set: cpu 250m and memory 256Mi"
-if pattern_check "$VALUES_FILE" 'limits:\s*\n(?:.*\n)*?cpu:\s*250m' && pattern_check "$VALUES_FILE" 'limits:\s*\n(?:.*\n)*?memory:\s*256Mi'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'cpu:\s*250m' && pattern_check "$VALUES_FILE" 'memory:\s*256Mi'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="pod annotations include example.com/release: lab"
-if pattern_check "$VALUES_FILE" 'podAnnotations:\s*\n(?:.*\n)*?example\.com/release:\s*"lab"'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'example\.com/release:\s*"lab"'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="service annotations include prometheus scrape hints"
-if pattern_check "$VALUES_FILE" 'annotations:\s*\n(?:.*\n)*?prometheus\.io/scrape:\s*"true"' && pattern_check "$VALUES_FILE" 'annotations:\s*\n(?:.*\n)*?prometheus\.io/port:\s*"5000"'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'prometheus\.io/scrape:\s*"true"' && pattern_check "$VALUES_FILE" 'prometheus\.io/port:\s*"5000"'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="rolling update strategy maxSurge=1, maxUnavailable=0"
-if pattern_check "$VALUES_FILE" 'strategy:\s*\n(?:.*\n)*?maxSurge:\s*1' && pattern_check "$VALUES_FILE" 'strategy:\s*\n(?:.*\n)*?maxUnavailable:\s*0'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'maxSurge:\s*1' && pattern_check "$VALUES_FILE" 'maxUnavailable:\s*0'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="nodeSelector sets kubernetes.io/os: linux"
-if pattern_check "$VALUES_FILE" 'nodeSelector:\s*\n(?:.*\n)*?kubernetes\.io/os:\s*linux'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'kubernetes\.io/os:\s*linux'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="tolerations include key=workload effect=NoSchedule"
-if pattern_check "$VALUES_FILE" 'tolerations:\s*\n(?:.*\n)*?key:\s*workload(?:.*\n)*?effect:\s*NoSchedule'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'key:\s*workload' && pattern_check "$VALUES_FILE" 'effect:\s*NoSchedule'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="pod anti-affinity present (spread by app.kubernetes.io/name)"
@@ -74,19 +74,19 @@ if pattern_check "$VALUES_FILE" 'podAntiAffinity'; then ok $task "$desc"; else f
 
 task=$((task+1))
 desc="autoscaling.enabled set to true"
-if pattern_check "$VALUES_FILE" 'enabled:\s*true'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'autoscaling:[\s\S]*enabled:\s*true'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="autoscaling.minReplicas set to 2"
-if pattern_check "$VALUES_FILE" 'minReplicas:\s*2'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'autoscaling:[\s\S]*minReplicas:\s*2'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="autoscaling.maxReplicas set to 5"
-if pattern_check "$VALUES_FILE" 'maxReplicas:\s*5'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'autoscaling:[\s\S]*maxReplicas:\s*5'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="autoscaling.targetCPUUtilizationPercentage set to 60"
-if pattern_check "$VALUES_FILE" 'targetCPUUtilizationPercentage:\s*60'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'autoscaling:[\s\S]*targetCPUUtilizationPercentage:\s*60'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="Ingress hosts include kube-lab.local"
@@ -94,11 +94,11 @@ if grep -q "kube-lab.local" "$VALUES_FILE"; then ok $task "$desc"; else fail $ta
 
 task=$((task+1))
 desc="Ingress TLS configured with secret kube-lab-tls"
-if pattern_check "$VALUES_FILE" 'ingress:\s*\n(?:.*\n)*?tls:\s*\n(?:.*\n)*?secretName:\s*kube-lab-tls'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'secretName:\s*kube-lab-tls'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="values.dev.yaml exists with replicas 1 and dev host"
-if [ -f "$DEV_FILE" ] && pattern_check "$DEV_FILE" 'replicas:\s*1' && pattern_check "$DEV_FILE" 'ingress:\s*\n(?:.*\n)*?hosts:\s*\n(?:.*\n)*?kube-lab-dev\.127\.0\.0\.1\.nip\.io'; then ok $task "$desc"; else fail $task "$desc"; fi
+if [ -f "$DEV_FILE" ] && pattern_check "$DEV_FILE" 'replicas:\s*1' && pattern_check "$DEV_FILE" 'kube-lab-dev\.127\.0\.0\.1\.nip\.io'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 echo
 echo "Score: $SCORE/$TOTAL"

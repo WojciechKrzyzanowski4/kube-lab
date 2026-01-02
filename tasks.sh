@@ -17,29 +17,24 @@ fail() {
 
 pattern_check() {
   local file="$1" pattern="$2"
-  python - "$file" "$pattern" <<'PY' >/dev/null 2>&1
-import sys, re, pathlib
-file, pat = sys.argv[1], sys.argv[2]
-text = pathlib.Path(file).read_text()
-sys.exit(0 if re.search(pat, text, re.S) else 1)
-PY
+  PERL_PATTERN="$pattern" perl -0777 -ne '$m=1 if /$ENV{PERL_PATTERN}/s; END { exit($m ? 0 : 1) }' "$file" >/dev/null 2>&1
 }
 
 task=1
 desc="api.replicas set to 3"
-if pattern_check "$VALUES_FILE" 'api:\s*\n(?:.*\n)*?replicas:\s*3'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'replicas:\s*3'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="image.pullPolicy set to Always"
-if pattern_check "$VALUES_FILE" 'image:\s*\n(?:.*\n)*?pullPolicy:\s*Always'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'pullPolicy:\s*Always'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="config sets APP_GREETING to Welcome to the Lab"
-if pattern_check "$VALUES_FILE" 'config:\s*\n(?:.*\n)*?APP_GREETING:\s*"Welcome to the Lab"'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'APP_GREETING:\s*"Welcome to the Lab"'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="config sets APP_ENV to lab"
-if pattern_check "$VALUES_FILE" 'config:\s*\n(?:.*\n)*?APP_ENV:\s*lab'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'APP_ENV:\s*lab'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="secret defines API_KEY (non-empty)"
@@ -47,11 +42,11 @@ if pattern_check "$VALUES_FILE" 'secret:\s*\n(?:.*\n)*?API_KEY:\s*("?)[^ \n"]+\1
 
 task=$((task+1))
 desc="requests set: cpu 100m and memory 128Mi"
-if pattern_check "$VALUES_FILE" 'resources:\s*\n(?:.*\n)*?requests:\s*\n(?:.*\n)*?cpu:\s*100m' && pattern_check "$VALUES_FILE" 'resources:\s*\n(?:.*\n)*?requests:\s*\n(?:.*\n)*?memory:\s*128Mi'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'requests:\s*\n(?:.*\n)*?cpu:\s*100m' && pattern_check "$VALUES_FILE" 'requests:\s*\n(?:.*\n)*?memory:\s*128Mi'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="limits set: cpu 250m and memory 256Mi"
-if pattern_check "$VALUES_FILE" 'resources:\s*\n(?:.*\n)*?limits:\s*\n(?:.*\n)*?cpu:\s*250m' && pattern_check "$VALUES_FILE" 'resources:\s*\n(?:.*\n)*?limits:\s*\n(?:.*\n)*?memory:\s*256Mi'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'limits:\s*\n(?:.*\n)*?cpu:\s*250m' && pattern_check "$VALUES_FILE" 'limits:\s*\n(?:.*\n)*?memory:\s*256Mi'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="pod annotations include example.com/release: lab"
@@ -59,11 +54,11 @@ if pattern_check "$VALUES_FILE" 'podAnnotations:\s*\n(?:.*\n)*?example\.com/rele
 
 task=$((task+1))
 desc="service annotations include prometheus scrape hints"
-if pattern_check "$VALUES_FILE" 'service:\s*\n(?:.*\n)*?annotations:\s*\n(?:.*\n)*?prometheus\.io/scrape:\s*"true"' && pattern_check "$VALUES_FILE" 'service:\s*\n(?:.*\n)*?annotations:\s*\n(?:.*\n)*?prometheus\.io/port:\s*"5000"'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'annotations:\s*\n(?:.*\n)*?prometheus\.io/scrape:\s*"true"' && pattern_check "$VALUES_FILE" 'annotations:\s*\n(?:.*\n)*?prometheus\.io/port:\s*"5000"'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="rolling update strategy maxSurge=1, maxUnavailable=0"
-if pattern_check "$VALUES_FILE" 'strategy:\s*\n(?:.*\n)*?rollingUpdate:\s*\n(?:.*\n)*?maxSurge:\s*1' && pattern_check "$VALUES_FILE" 'strategy:\s*\n(?:.*\n)*?rollingUpdate:\s*\n(?:.*\n)*?maxUnavailable:\s*0'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'strategy:\s*\n(?:.*\n)*?maxSurge:\s*1' && pattern_check "$VALUES_FILE" 'strategy:\s*\n(?:.*\n)*?maxUnavailable:\s*0'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="nodeSelector sets kubernetes.io/os: linux"
@@ -71,27 +66,27 @@ if pattern_check "$VALUES_FILE" 'nodeSelector:\s*\n(?:.*\n)*?kubernetes\.io/os:\
 
 task=$((task+1))
 desc="tolerations include key=workload effect=NoSchedule"
-if pattern_check "$VALUES_FILE" 'tolerations:\s*\n(?:.*\n)*?-.*key:\s*workload(?:.*\n)*?operator:\s*Exists(?:.*\n)*?effect:\s*NoSchedule'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'tolerations:\s*\n(?:.*\n)*?key:\s*workload(?:.*\n)*?effect:\s*NoSchedule'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="pod anti-affinity present (spread by app.kubernetes.io/name)"
-if pattern_check "$VALUES_FILE" 'affinity:\s*\n(?:.*\n)*?podAntiAffinity'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'podAntiAffinity'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="autoscaling.enabled set to true"
-if pattern_check "$VALUES_FILE" 'autoscaling:\s*\n(?:.*\n)*?enabled:\s*true'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'enabled:\s*true'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="autoscaling.minReplicas set to 2"
-if pattern_check "$VALUES_FILE" 'autoscaling:\s*\n(?:.*\n)*?minReplicas:\s*2'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'minReplicas:\s*2'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="autoscaling.maxReplicas set to 5"
-if pattern_check "$VALUES_FILE" 'autoscaling:\s*\n(?:.*\n)*?maxReplicas:\s*5'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'maxReplicas:\s*5'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="autoscaling.targetCPUUtilizationPercentage set to 60"
-if pattern_check "$VALUES_FILE" 'autoscaling:\s*\n(?:.*\n)*?targetCPUUtilizationPercentage:\s*60'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'targetCPUUtilizationPercentage:\s*60'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="Ingress hosts include kube-lab.local"

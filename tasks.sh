@@ -74,19 +74,19 @@ if pattern_check "$VALUES_FILE" 'podAntiAffinity'; then ok $task "$desc"; else f
 
 task=$((task+1))
 desc="autoscaling.enabled set to true"
-if pattern_check "$VALUES_FILE" 'enabled:\s*true'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'autoscaling:[\s\S]*enabled:\s*true'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="autoscaling.minReplicas set to 2"
-if pattern_check "$VALUES_FILE" 'minReplicas:\s*2'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'autoscaling:[\s\S]*minReplicas:\s*2'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="autoscaling.maxReplicas set to 5"
-if pattern_check "$VALUES_FILE" 'maxReplicas:\s*5'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'autoscaling:[\s\S]*maxReplicas:\s*5'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="autoscaling.targetCPUUtilizationPercentage set to 60"
-if pattern_check "$VALUES_FILE" 'targetCPUUtilizationPercentage:\s*60'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'autoscaling:[\s\S]*targetCPUUtilizationPercentage:\s*60'; then ok $task "$desc"; else fail $task "$desc"; fi
 
 task=$((task+1))
 desc="Ingress hosts include kube-lab.local"

@@ -51,49 +51,11 @@ status="${resp%%$'\n'*}"
 body="${resp#*$'\n'}"
 if [ "$status" = "200" ] && echo "$body" | grep -qi 'version'; then ok 3 "$desc"; else fail 3 "$desc"; fi
 
-desc="Echo endpoint returns the same path param"
-msg="lab-echo-123"
-resp="$(curl_json "$BASE_URL/echo/$msg")"
-status="${resp%%$'\n'*}"
-body="${resp#*$'\n'}"
-if [ "$status" = "200" ] && echo "$body" | grep -q "$msg"; then ok 4 "$desc"; else fail 4 "$desc"; fi
-
-desc="Sum endpoint adds a and b"
-resp="$(curl_json "$BASE_URL/sum?a=2&b=5")"
-status="${resp%%$'\n'*}"
-body="${resp#*$'\n'}"
-if [ "$status" = "200" ] && echo "$body" | grep -q '"sum"[[:space:]]*:[[:space:]]*7'; then ok 5 "$desc"; else fail 5 "$desc"; fi
-
-desc="Greet endpoint uses GREETING_PREFIX and name"
-resp="$(curl_json "$BASE_URL/greet?name=Jane")"
-status="${resp%%$'\n'*}"
-body="${resp#*$'\n'}"
-if [ "$status" = "200" ] && echo "$body" | grep -qi 'greeting' && echo "$body" | grep -qi 'Jane'; then ok 6 "$desc"; else fail 6 "$desc"; fi
-
 desc="Secret-check endpoint reports token presence"
 resp="$(curl_json "$BASE_URL/secret-check")"
 status="${resp%%$'\n'*}"
 body="${resp#*$'\n'}"
 if [ "$status" = "200" ] && echo "$body" | grep -qi 'has_dummy_token'; then ok 7 "$desc"; else fail 7 "$desc"; fi
-
-desc="Headers endpoint returns user agent"
-tmpfile="$(mktemp)"
-status=$(curl -s -o "$tmpfile" -w "%{http_code}" -H "User-Agent: grader-bot" "$BASE_URL/headers" 2>/dev/null || echo "000")
-body="$(cat "$tmpfile")"
-rm -f "$tmpfile"
-if [ "$status" = "200" ] && echo "$body" | grep -qi 'grader-bot'; then ok 8 "$desc"; else fail 8 "$desc"; fi
-
-desc="Ping endpoint returns pong"
-resp="$(curl_json "$BASE_URL/ping")"
-status="${resp%%$'\n'*}"
-body="${resp#*$'\n'}"
-if [ "$status" = "200" ] && echo "$body" | grep -qi 'pong'; then ok 9 "$desc"; else fail 9 "$desc"; fi
-
-desc="Mirror endpoint echoes JSON payload"
-resp="$(curl_json "$BASE_URL/mirror" "POST" '{"foo":"bar"}')"
-status="${resp%%$'\n'*}"
-body="${resp#*$'\n'}"
-if [ "$status" = "200" ] && echo "$body" | grep -qi 'foo' && echo "$body" | grep -qi 'bar'; then ok 10 "$desc"; else fail 10 "$desc"; fi
 
 VALUES_FILE="devops/kube-lab/values.yaml"
 

@@ -10,3 +10,4 @@ metadata:
 data:
   APP_NAME: {{ .Values.config.APP_NAME | quote }}
   APP_ENV: {{ .Values.config.APP_ENV | quote }}
+  APP_GREETING: {{ .Values.config.APP_GREETING | quote }}

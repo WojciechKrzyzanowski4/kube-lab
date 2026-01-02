@@ -27,18 +27,21 @@ Hands-on laboratory for shipping the sample Flask API with Docker, Helm, autosca
 
 ## 1. Local Container Build
 1. Inspect the app: `api/app.py`.
-2. Build: `make build IMAGE_NAME=kube-lab TAG=lab-1`.
-3. Run locally: `docker run --rm -p 5000:5000 kube-lab:lab-1`.
-4. Verify: `curl http://127.0.0.1:5000/healthz` (local container smoke test).
+2. Build: `make build IMAGE_NAME=kube-lab`.
+3. Run locally: `docker run --rm -p 5000:5000 kube-lab`.
+4. Verify: `visit http://localhost:5000 in your browser` (local container smoke test).
+5. You should get the message `Hello from Flask running locally!`
 - Docker best practices: <https://docs.docker.com/develop/>
 
 ## 2. Helm-Based Deploy to Local Cluster
 1. Switch context if needed: `make context KUBE_CONTEXT=docker-desktop` (or your context).
-2. Install/upgrade: `make deploy RELEASE_NAME=lab NAMESPACE=kube-lab IMAGE_NAME=kube-lab TAG=lab-1`.
+2. Install/upgrade: `make deploy RELEASE_NAME=lab NAMESPACE=kube-lab IMAGE_NAME=kube-lab`.
 3. Check resources:
    - `kubectl get pods -n kube-lab`
-   - `kubectl describe deploy lab-kube-lab -n kube-lab`
+   - `kubectl describe deploy kube-lab-lab -n kube-lab`
 4. Port-forward for testing: `kubectl port-forward svc/kube-lab-lab 5000:80 -n kube-lab`.
+5. Verify: `visit http://localhost:5000 in your browser` (local container smoke test). 
+6. You should get the message `Hello from Flask running in Kubernetes via Ingress!`
 - Helm chart guide: <https://helm.sh/docs/chart_template_guide/>
 
 ## 3. Configuration and Secret Management
@@ -97,26 +100,19 @@ Prereq: install an Ingress controller (e.g., ingress-nginx) on your cluster: <ht
 **API tasks**
 1) Add `/healthz` that returns JSON `{"status":"ok"}` (HTTP 200).  
 2) Extend `/config` to also return `app_env` (from `APP_ENV`, default `dev`).  
-3) Add `/version` returning `{"version": <APP_VERSION or "v0">}`.  
-4) Add `/echo/<msg>` returning `{"echo":"<msg>"}`.  
-5) Add `/sum?a=1&b=2` returning `{"sum":3}` (treat missing inputs as 0).  
-6) Add `/greet?name=Jane` using env `GREETING_PREFIX` (default `Hello`) → `{"greeting":"Hello Jane"}`.  
-7) Add `/secret-check` returning `{"has_dummy_token": true|false}` depending on env `DUMMY_TOKEN` presence.  
-8) Add `/headers` returning `{"user_agent":"<user agent>"}`.  
-9) Add `/ping` returning plain text `pong`.  
-10) Add `/mirror` (POST) that echoes JSON body under `{"received": <body>}` (400 if body is missing/invalid JSON).
+3) Add `/version` returning `{"version": <APP_VERSION or "v0">}` this should be based on the Chart version and propagated through the config Map (se.  
+4) Add `/secret-check` returning `{"has_dummy_token": true|false}` depending on env `DUMMY_TOKEN` presence.  
 
 **Helm/values tasks**
-11) Set `api.replicas` to `3` in `devops/kube-lab/values.yaml`.  
-12) Add `GREETING_PREFIX` to the `config` map (e.g., `"HelloLab"`).  
-13) Add `APP_VERSION` to the `config` map (e.g., `"v1"`).  
-14) Add `API_TOKEN` to the `secret` map.  
-15) Enable HPA: `autoscaling.enabled: true`.  
-16) Set `autoscaling.minReplicas: 2`.  
-17) Set `autoscaling.maxReplicas: 5`.  
-18) Set `autoscaling.targetCPUUtilizationPercentage: 60`.  
-19) Add an extra ingress host `kube-lab.local` to `api.ingress.hosts`.  
-20) Create `devops/kube-lab/values.dev.yaml` with `api.replicas: 1` (override for a lean dev setup).
+1) Set `api.replicas` to `3` in `devops/kube-lab/values.yaml`.  
+2) Add `GREETING_PREFIX` to the `config` map (e.g., `"HelloLab"`).  
+3) Add `API_TOKEN` to the `secret` map.  
+4) Enable HPA: `autoscaling.enabled: true`.  
+5) Set `autoscaling.minReplicas: 2`.  
+6) Set `autoscaling.maxReplicas: 5`.  
+7) Set `autoscaling.targetCPUUtilizationPercentage: 60`.  
+8) Add an extra ingress host `kube-lab.local` to `api.ingress.hosts`.  
+9) Create `devops/kube-lab/values.dev.yaml` with `api.replicas: 1` (override for a lean dev setup).
 
 ## 9. Grading the Tasks
 - Ensure the app is running and reachable at `BASE_URL` (defaults to `http://kube-lab-api.127.0.0.1.nip.io`).
@@ -136,4 +132,4 @@ Prereq: install an Ingress controller (e.g., ingress-nginx) on your cluster: <ht
 - [ ] Secrets managed securely (Sealed Secrets or external secret store)
 - [ ] HPA scales under load
 - [ ] Rolling updates verified
-- [ ] All 20 local tasks graded green by `tests/tasks.sh`
+- [ ] All 14 local tasks graded green by `tests/tasks.sh`

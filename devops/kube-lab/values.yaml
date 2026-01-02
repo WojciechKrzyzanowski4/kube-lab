@@ -47,6 +47,7 @@ config:
   component: "config"
   APP_NAME: "FlaskLabApp"
   APP_ENV: "dev"
+  APP_GREETING: "Hello from Flask running in Kubernetes via Ingress!"
 
 secret:
   enabled: true

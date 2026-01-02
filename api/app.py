@@ -1,10 +1,14 @@
-from flask import Flask, jsonify
+from flask import Flask
 import os
 
 flask_app = Flask(__name__)
 @flask_app.route("/")
 def index():
-    return "Hello from Flask running in Kubernetes!", 200
+    greeting = os.getenv(
+        "APP_GREETING",
+        "Hello from Flask running locally!"
+    )
+    return greeting, 200
 
 @flask_app.route("/livez")
 def live_z():
@@ -14,14 +18,9 @@ def live_z():
 def ready_z():
     return "OK", 200
 
-@flask_app.route("/healthz")
-def health_z():
-    return "OK", 200
+# This is the api space, you can define and change your endpoints right here
+# Creating other files, maintaining a clean separation of concerns is not needed but advised
 
-@flask_app.route("/config")
-def config():
-    app_name = os.getenv("APP_NAME", "DefaultApp")
-    return jsonify({"app_name": app_name})
 
 
 if __name__ == "__main__":

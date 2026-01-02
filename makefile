@@ -24,7 +24,6 @@ full: uninstall context secrets build deploy
 	@echo "  - Check:   kubectl get pods,svc,ingress -n $(NAMESPACE) -l app.kubernetes.io/instance=$(RELEASE_NAME)"
 	@echo "  - Logs:    kubectl logs deploy/$(NAMESPACE)-$(RELEASE_NAME) -n $(NAMESPACE) --tail=100 -f"
 	@echo "  - Forward: kubectl port-forward svc/$(NAMESPACE)-$(RELEASE_NAME) 5000:80 -n $(NAMESPACE)"
-	@echo "  - Guide:   $(LAB_GUIDE)"
 
 help:
 	@echo "Kube Lab helpers:"
@@ -33,8 +32,6 @@ help:
 	@echo "  make deploy RELEASE_NAME=lab       Upgrade/install the Helm chart"
 	@echo "  make grade BASE_URL=...            Run the 20-task grader (defaults to $(BASE_URL) via Ingress)"
 	@echo
-	@echo "Docs:"
-	@echo "  $(LAB_GUIDE)"
 
 
 context:

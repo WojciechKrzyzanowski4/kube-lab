@@ -16,6 +16,15 @@ TLS_SECRET_NAME     ?= tls-secret
 TLS_CERT_FILE       ?= certs/tls.crt
 TLS_KEY_FILE        ?= certs/tls.key
 
+MAKEFLAGS += --no-builtin-rules
+.SUFFIXES:
+
+ifeq ($(OS),Windows_NT)
+BASH := "C:/Program Files/Git/bin/bash.exe"
+else
+BASH := bash
+endif
+
 .PHONY: help full context uninstall build deploy lab lab-steps grade
 
 
@@ -104,4 +113,5 @@ deploy:
 
 grade:
 	@echo "Running grader against BASE_URL=$(BASE_URL)..."
-	@BASE_URL=$(BASE_URL) ./tasks.sh
+	@$(BASH) ./tasks.sh
+

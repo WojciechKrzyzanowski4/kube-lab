@@ -1,20 +1,21 @@
-TAG        			?= latest
-API_DIR 			?= api
-IMAGE_NAME    		?= kube-lab
-CHART_DIR     		?= devops/kube-lab
-VALUES_FILE   		?= $(CHART_DIR)/values.yaml
-EXTRA_VALUES  		?=
-RELEASE_NAME  		?= lab
-NAMESPACE     		?= kube-lab
-KUBE_CONTEXT  		?= docker-desktop
-DOCS_DIR    		?= docs
-LAB_GUIDE   		?= $(DOCS_DIR)/lab-tasks.md
-BASE_URL			?= http://kube-lab-api.127.0.0.1.nip.io
-ENV_FILE        	?= devops/.env
-SECRET_NAME     	?= api-secret
-TLS_SECRET_NAME     ?= tls-secret
-TLS_CERT_FILE       ?= certs/tls.crt
-TLS_KEY_FILE        ?= certs/tls.key
+TAG						?= latest
+API_DIR					?= api
+IMAGE_NAME				?= kube-lab
+CHART_DIR				?= devops/kube-lab
+VALUES_FILE				?= $(CHART_DIR)/values.yaml
+EXTRA_VALUES			?=
+RELEASE_NAME			?= lab
+NAMESPACE				?= kube-lab
+KUBE_CONTEXT			?= docker-desktop
+DOCS_DIR				?= docs
+LAB_GUIDE				?= $(DOCS_DIR)/lab-tasks.md
+BASE_URL				?= https://kube-lab-api.127.0.0.1.nip.io
+ENV_FILE				?= devops/.env
+SECRET_NAME				?= api-secret
+TLS_SECRET_NAME     	?= tls-secret
+TLS_CERT_FILE       	?= certs/tls.crt
+TLS_KEY_FILE			?= certs/tls.key
+INGRESS_MANIFEST_URL 	?= https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
 
 MAKEFLAGS += --no-builtin-rules
 .SUFFIXES:
@@ -28,14 +29,17 @@ endif
 .PHONY: help full context uninstall build deploy lab lab-steps grade
 
 
-full: uninstall context secret tls-secret build deploy
+full: uninstall context setup secret tls-secret build deploy
 	@echo
 	@echo "Deployment triggered successfully!"
 	@echo
 	@echo "Next steps:"
 	@echo "  - Check:   kubectl get pods,svc,ingress -n $(NAMESPACE) -l app.kubernetes.io/instance=$(RELEASE_NAME)"
 	@echo "  - Logs:    kubectl logs deploy/$(NAMESPACE)-$(RELEASE_NAME) -n $(NAMESPACE) --tail=100 -f"
-	@echo "  - Forward: kubectl port-forward svc/$(NAMESPACE)-$(RELEASE_NAME) 5000:80 -n $(NAMESPACE)"
+	@echo "Application access:"
+	@echo "  - URL: $(BASE_URL)"
+	@echo "  - Browser warnings about an insecure connection are expected."
+	@echo "    This is normal in local environments (self-signed certificates)."
 
 help:
 	@echo "Kube Lab helpers:"
@@ -55,9 +59,24 @@ context:
 	  echo "kubectl context already $(KUBE_CONTEXT)"; \
 	fi
 
+setup:
+	@echo "Setting up Kubernetes prerequisites..."
+
+	@echo "➡ Creating namespace '$(NAMESPACE)' (if not exists)..."
+	@kubectl create namespace $(NAMESPACE) \
+	  --dry-run=client -o yaml | kubectl apply -f -
+
+	@echo "➡ Installing NGINX Ingress Controller..."
+	@kubectl apply -f $(INGRESS_MANIFEST_URL)
+
+	@echo "➡ Waiting for Ingress Controller to be ready..."
+	@kubectl -n ingress-nginx rollout status deployment/ingress-nginx-controller
+
+	@echo "Kubernetes setup completed"
+
 secret:
 	@if [ ! -f "$(ENV_FILE)" ]; then \
-	  echo "❌ Missing $(ENV_FILE). Create it first in the devops folder."; \
+	  echo "Missing $(ENV_FILE). Create it first in the devops folder."; \
 	  exit 1; \
 	fi
 	@echo "Creating/updating Kubernetes Secret '$(SECRET_NAME)' from $(ENV_FILE)..."
@@ -68,11 +87,11 @@ secret:
 	    --from-literal=API_KEY="$$API_KEY" \
 	    --namespace $(NAMESPACE) \
 	    --dry-run=client -o yaml | kubectl apply -f -
-	@echo "✅ Secret $(SECRET_NAME) applied to namespace $(NAMESPACE)"
+	@echo "Secret $(SECRET_NAME) applied to namespace $(NAMESPACE)"
 
 tls-secret:
 	@if [ ! -f "$(TLS_CERT_FILE)" ] || [ ! -f "$(TLS_KEY_FILE)" ]; then \
-	  echo "❌ Missing TLS cert or key."; \
+	  echo "Missing TLS cert or key."; \
 	  echo "   Expected:"; \
 	  echo "     $(TLS_CERT_FILE)"; \
 	  echo "     $(TLS_KEY_FILE)"; \
@@ -85,7 +104,7 @@ tls-secret:
 	  --key="$(TLS_KEY_FILE)" \
 	  --namespace "$(NAMESPACE)" \
 	  --dry-run=client -o yaml | kubectl apply -f -
-	@echo "✅ TLS Secret $(TLS_SECRET_NAME) applied to namespace $(NAMESPACE)"
+	@echo "TLS Secret $(TLS_SECRET_NAME) applied to namespace $(NAMESPACE)"
 
 uninstall:
 	@echo "Uninstalling Helm release (if present): $(RELEASE_NAME) in $(NAMESPACE)"

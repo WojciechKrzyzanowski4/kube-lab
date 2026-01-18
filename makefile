@@ -13,6 +13,15 @@ BASE_URL			?= http://kube-lab-api.127.0.0.1.nip.io
 ENV_FILE        	?= devops/.env
 SECRET_NAME     	?= api-secret
 
+MAKEFLAGS += --no-builtin-rules
+.SUFFIXES:
+
+ifeq ($(OS),Windows_NT)
+BASH := "C:/Program Files/Git/bin/bash.exe"
+else
+BASH := bash
+endif
+
 .PHONY: help full context uninstall build deploy lab lab-steps grade
 
 
@@ -84,4 +93,5 @@ deploy:
 
 grade:
 	@echo "Running grader against BASE_URL=$(BASE_URL)..."
-	@BASE_URL=$(BASE_URL) ./tasks.sh
+	@$(BASH) ./tasks.sh
+

@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-BASE_URL="${BASE_URL:-http://kube-lab-api.127.0.0.1.nip.io}"
 TOTAL=20
 SCORE=0
 VALUES_FILE="devops/kube-lab/values.yaml"
@@ -103,5 +102,5 @@ if [ -f "$DEV_FILE" ] && pattern_check "$DEV_FILE" 'replicas:\s*1' && pattern_ch
 echo
 echo "Score: $SCORE/$TOTAL"
 if [ "$SCORE" -lt "$TOTAL" ]; then
-  echo "Tip: ensure the release is deployed and values.yaml/values.dev.yaml match the tasks."
+  echo "Tip: ensure values.yaml/values.dev.yaml match the tasks."
 fi

@@ -12,11 +12,14 @@ LAB_GUIDE   		?= $(DOCS_DIR)/lab-tasks.md
 BASE_URL			?= http://kube-lab-api.127.0.0.1.nip.io
 ENV_FILE        	?= devops/.env
 SECRET_NAME     	?= api-secret
+TLS_SECRET_NAME     ?= tls-secret
+TLS_CERT_FILE       ?= certs/tls.crt
+TLS_KEY_FILE        ?= certs/tls.key
 
 .PHONY: help full context uninstall build deploy lab lab-steps grade
 
 
-full: uninstall context secrets build deploy
+full: uninstall context secret tls-secret build deploy
 	@echo
 	@echo "Deployment triggered successfully!"
 	@echo
@@ -43,7 +46,7 @@ context:
 	  echo "kubectl context already $(KUBE_CONTEXT)"; \
 	fi
 
-secrets:
+secret:
 	@if [ ! -f "$(ENV_FILE)" ]; then \
 	  echo "❌ Missing $(ENV_FILE). Create it first in the devops folder."; \
 	  exit 1; \
@@ -57,6 +60,23 @@ secrets:
 	    --namespace $(NAMESPACE) \
 	    --dry-run=client -o yaml | kubectl apply -f -
 	@echo "✅ Secret $(SECRET_NAME) applied to namespace $(NAMESPACE)"
+
+tls-secret:
+	@if [ ! -f "$(TLS_CERT_FILE)" ] || [ ! -f "$(TLS_KEY_FILE)" ]; then \
+	  echo "❌ Missing TLS cert or key."; \
+	  echo "   Expected:"; \
+	  echo "     $(TLS_CERT_FILE)"; \
+	  echo "     $(TLS_KEY_FILE)"; \
+	  echo "   Generate them first (e.g. using mkcert)."; \
+	  exit 1; \
+	fi
+	@echo "Creating/updating Kubernetes TLS Secret '$(TLS_SECRET_NAME)'..."
+	@kubectl create secret tls $(TLS_SECRET_NAME) \
+	  --cert="$(TLS_CERT_FILE)" \
+	  --key="$(TLS_KEY_FILE)" \
+	  --namespace "$(NAMESPACE)" \
+	  --dry-run=client -o yaml | kubectl apply -f -
+	@echo "✅ TLS Secret $(TLS_SECRET_NAME) applied to namespace $(NAMESPACE)"
 
 uninstall:
 	@echo "Uninstalling Helm release (if present): $(RELEASE_NAME) in $(NAMESPACE)"

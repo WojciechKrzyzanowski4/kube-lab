@@ -15,10 +15,15 @@ spec:
   {{- if .Values.api.ingress.className }}
   ingressClassName: {{ .Values.api.ingress.className | quote }}
   {{- end }}
-  {{- if .Values.api.ingress.tls }}
+  {{- if .Values.api.ingress.tls.enabled}}
   tls:
-    {{ toYaml .Values.api.ingress.tls | nindent 4 }}
+    - hosts:
+        {{- range .Values.api.ingress.hosts}}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .Values.api.ingress.tls.secretName | quote}}
   {{- end }}
+
   rules:
     {{- range .Values.api.ingress.hosts }}
     - host: {{ . | quote }}

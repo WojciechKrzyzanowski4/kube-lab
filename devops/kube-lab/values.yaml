@@ -43,7 +43,9 @@ api:
     hosts:
       - kube-lab-api.127.0.0.1.nip.io
     path: /
-    tls: [ ]
+    tls:
+      enabled: True
+      secretName: tls-secret
   secret:
     name: api-secret
 

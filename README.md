@@ -10,7 +10,7 @@ Hands-on laboratory for shipping the sample Flask API with Docker, Helm, secrets
 - `api/` Flask app + Dockerfile
 - `devops/kube-lab/` Helm chart (`values.yaml` controls image, secrets, autoscaling, ingress)
 - `makefile` helper targets (local build and Helm deploy)
-- `tasks.sh` grading script for the 20 tasks (expects the app reachable at `BASE_URL`, default `http://kube-lab-api.127.0.0.1.nip.io`)
+- `tasks.sh` grading script for the 20 tasks
 - `docs/lab-course.md` guide on the first part of the laboratory
 - `docs/lab-tasks.md` step-by-step task list
 

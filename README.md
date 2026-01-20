@@ -8,11 +8,11 @@ Hands-on laboratory for shipping the sample Flask API with Docker, Helm, secrets
 
 ## Repo Tour
 - `api/` Flask app + Dockerfile
+- `docs/` documentation to complete the laboratory
 - `devops/kube-lab/` Helm chart (`values.yaml` controls image, secrets, autoscaling, ingress)
 - `makefile` helper targets (local build and Helm deploy)
 - `tasks.sh` grading script for the 20 tasks
-- `docs/lab-course.md` guide on the first part of the laboratory
-- `docs/lab-tasks.md` step-by-step task list
+
 
 ## Lab Objectives
 1) Containerize and run the API locally.

@@ -4,7 +4,7 @@ All changes in this section must be made in **Helm values or templates**, unless
 
 By default, the application is expected to be reachable at:
 
-BASE_URL = http://kube-lab-api.127.0.0.1.nip.io
+BASE_URL = https://kube-lab-api.127.0.0.1.nip.io
 
 ### Warm-up: Helm Values Basics
 

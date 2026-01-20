@@ -57,7 +57,7 @@ config:
   APP_GREETING: "Hello from Flask running in Kubernetes via Ingress!"
 
 autoscaling:
-  enabled: sdfsadfasd
+  enabled: False
   name: "kube-lab"
   component: "api-hpa"
   minReplicas: 4

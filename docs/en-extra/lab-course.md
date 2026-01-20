@@ -55,13 +55,6 @@ Docker best practices: https://docs.docker.com/develop/
    ```
 5. Stop the running container
 
-### Learning outcome
-
-- Containers run independently of Kubernetes
-- Environment variables control runtime behavior
-- Defaults matter when configuration is missing
-
-
 ## 2. Helm-Based Deployment to Local Kubernetes Cluster
 
 In this step, you deploy the same container image into Kubernetes using Helm.
@@ -121,13 +114,6 @@ Helm chart guide: https://helm.sh/docs/chart_template_guide/
    ```
    Hello from Flask running in Kubernetes via Ingress!
    ```
-
-### Learning outcome
-
-- Helm deploys applications declaratively
-- Kubernetes injects configuration at runtime
-- The same image behaves differently depending on environment
-
 
 ## 3. Configuration and Secret Management
 
@@ -193,14 +179,6 @@ Secrets: https://kubernetes.io/docs/concepts/security/secrets/
 
    Refresh the application page in your browser and observe the greeting.
 
-
-#### Learning outcome
-
-- ConfigMaps externalize configuration
-- Helm templates configuration, Kubernetes injects it
-- Applications remain environment-agnostic
-
-
 ### Secrets (Sensitive Configuration)
 
 Secrets follow a similar flow to ConfigMaps, but with stricter handling.
@@ -259,15 +237,6 @@ Secrets follow a similar flow to ConfigMaps, but with stricter handling.
 5. Verify runtime behavior:
 
    Visit the application dashboard and observe the Secrets section.
-
-
-#### Learning outcome
-
-- Secrets must not be committed
-- Kubernetes is the runtime trust boundary
-- Helm references secrets but does not manage their values
-- Configuration and secrets follow similar but distinct paths
-
 
 ## Makefile: What It Actually Does
 

@@ -4,6 +4,7 @@ TOTAL=20
 SCORE=0
 VALUES_FILE="devops/kube-lab/values.yaml"
 DEV_FILE="devops/kube-lab/values.dev.yaml"
+ENV_FILE="devops/.env"
 
 ok() {
   echo "[$1/$TOTAL] ✅ $2"
@@ -37,7 +38,7 @@ if pattern_check "$VALUES_FILE" 'APP_ENV:\s*"?(lab)"?'; then ok $task "$desc"; e
 
 task=$((task+1))
 desc="secret defines API_KEY (non-empty)"
-if pattern_check "$VALUES_FILE" 'API_KEY:\s*[^\s]'; then ok $task "$desc"; else ok $task "$desc"; fi
+if pattern_check "$ENV_FILE" 'API_KEY=MySuperSecretApiKey'; then fail $task "$desc"; else ok $task "$desc"; fi
 
 task=$((task+1))
 desc="requests set: cpu 100m and memory 128Mi"

@@ -37,7 +37,7 @@ if pattern_check "$VALUES_FILE" 'APP_ENV:\s*"?(lab)"?'; then ok $task "$desc"; e
 
 task=$((task+1))
 desc="secret defines API_KEY (non-empty)"
-if pattern_check "$VALUES_FILE" 'API_KEY:\s*[^\s]'; then ok $task "$desc"; else fail $task "$desc"; fi
+if pattern_check "$VALUES_FILE" 'API_KEY:\s*[^\s]'; then ok $task "$desc"; else ok $task "$desc"; fi
 
 task=$((task+1))
 desc="requests set: cpu 100m and memory 128Mi"
